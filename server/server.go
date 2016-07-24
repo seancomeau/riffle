@@ -50,13 +50,13 @@ type Server struct {
 	//crypto
 	suite      abstract.Suite
 	g          abstract.Group
-	sk         abstract.Secret //secret and public elgamal key
+	sk         abstract.Scalar //secret and public elgamal key
 	pk         abstract.Point
 	pkBin      []byte
 	pks        []abstract.Point //all servers pks
 	nextPks    []abstract.Point
 	nextPksBin [][]byte
-	ephSecret  abstract.Secret
+	ephSecret  abstract.Scalar
 
 	//used during key shuffle
 	pi             []int
@@ -108,10 +108,10 @@ type Round struct {
 func NewServer(port1 int, port2 int, id int, servers []string, FSMode bool) *Server {
 	suite := edwards.NewAES128SHA256Ed25519(false)
 	rand := suite.Cipher(abstract.RandomKey)
-	sk := suite.Secret().Pick(rand)
+	sk := suite.Scalar().Pick(rand)
 	pk := suite.Point().Mul(nil, sk)
 	pkBin := MarshalPoint(pk)
-	ephSecret := suite.Secret().Pick(rand)
+	ephSecret := suite.Scalar().Pick(rand)
 
 	rounds := make([]*Round, MaxRounds)
 
@@ -475,7 +475,7 @@ func (s *Server) shuffleKeys(_ uint64) {
 			rand := s.suite.Cipher(abstract.RandomKey)
 			var prover proof.Prover
 			var err error
-			Xbarss[i], Ybarss[i], prover = shuffle.Shuffle2(s.pi, s.g, nil, pk, Xss[i], Yss[i], rand)
+			Xbarss[i], Ybarss[i], prover = shuffle.Shuffle(s.g, nil, pk, Xss[i], Yss[i], rand)
 			prfs[i], err = proof.HashProve(s.suite, "PairShuffle", rand, prover)
 			if err != nil {
 				log.Fatal("Shuffle proof failed: " + err.Error())
@@ -704,7 +704,7 @@ func (s *Server) shareSecret(clientPublic abstract.Point) (abstract.Point, abstr
 	s.secretLock.Lock()
 	rand := s.suite.Cipher(abstract.RandomKey)
 	gen := s.g.Point().Base()
-	secret := s.g.Secret().Pick(rand)
+	secret := s.g.Scalar().Pick(rand)
 	public := s.g.Point().Mul(gen, secret)
 	sharedSecret := s.g.Point().Mul(clientPublic, secret)
 	s.secretLock.Unlock()

@@ -188,7 +188,7 @@ func (c *Client) UploadKeys(idx int) {
 	rand := c.suite.Cipher(abstract.RandomKey)
 	keyPts := make([]abstract.Point, len(c.servers))
 	for i := range keyPts {
-		secret := c.g.Secret().Pick(rand)
+		secret := c.g.Scalar().Pick(rand)
 		public := c.g.Point().Mul(gen, secret)
 		keyPts[i] = public
 		c.keys[i] = MarshalPoint(public)
@@ -224,8 +224,8 @@ func (c *Client) UploadKeys(idx int) {
 func (c *Client) ShareSecret() {
 	gen := c.g.Point().Base()
 	rand := c.suite.Cipher(abstract.RandomKey)
-	secret1 := c.g.Secret().Pick(rand)
-	secret2 := c.g.Secret().Pick(rand)
+	secret1 := c.g.Scalar().Pick(rand)
+	secret2 := c.g.Scalar().Pick(rand)
 	public1 := c.g.Point().Mul(gen, secret1)
 	public2 := c.g.Point().Mul(gen, secret2)
 
